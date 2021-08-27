@@ -1,0 +1,110 @@
+# -----------------------------------------------------------------------------
+# Calculadora
+# -----------------------------------------------------------------------------
+
+tokens = (
+    'NUMBER',
+    'SUMA','MENOS','MULTI','DIV',
+    'PARA','PARC',
+    )
+
+# Tokens
+
+t_SUMA    = r'\+'
+t_MENOS   = r'-'
+t_MULTI   = r'\*'
+t_DIV	  = r'/'
+t_PARA  = r'\('
+t_PARC  = r'\)'
+
+
+
+def t_NUMBER(t):
+    r'\d+'
+    try:
+        t.value = int(t.value)
+    except ValueError:
+        print("Entero muy grande %d", t.value)
+        t.value = 0
+    return t
+#Clase que nos ayudara a almacenar las variables temp y c3d
+from Temporal import Temporal
+# Ignored characters
+t_ignore = " \t"
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += t.value.count("\n")
+    
+def t_error(t):
+    print("Error lexico '%s'" % t.value[0])
+    t.lexer.skip(1)
+    
+#lexico
+import ply.lex as lex
+lexer = lex.lex()
+
+#parser
+
+
+# dictionary of names
+names = { }
+
+def p_expresion_inicio(t):
+    'inicio : exp'
+    print(t[1].c3d)
+
+def p_expresion_E(t):
+    '''exp : exp SUMA exp2
+                  | exp MENOS exp2
+		  | exp2'''
+    if t[2] == '+'  : 
+	tm = newTemp()
+	valor = t[1].c3d+t[3].c3d+"\n"+tm +"=" + t[1].temp + "+"+t[3]
+    	t[0] = Temporal(tm,valor)
+    elif t[2] == '-':
+	tm = newTemp()
+	valor = t[1].c3d+t[3].c3d+"\n"+tm +"=" + t[1].temp + "-"+t[3]
+    	t[0] = Temporal(tm,valor)
+    else: t[0] = t[1]
+
+def p_expresion_T(t):
+    '''exp2 : exp2 MULTI expf
+                  | exp2 DIV expf
+		  | expf '''
+    elif t[2] == '*': 
+	tm = newTemp()
+	valor = t[1].c3d+t[3].c3d+"\n"+tm +"=" + t[1].temp + "\*"+t[3]
+    	t[0] = Temporal(tm,valor)
+    elif t[2] == '/': 
+	tm = newTemp()
+	valor = t[1].c3d+t[3].c3d+"\n"+tm +"=" + t[1].temp + "\/"+t[3]
+    	t[0] = Temporal(tm,valor)
+    else: t[0] = t[1]
+
+def p_expresion_agrupacion(t):
+    'expf : PARA exp PARC'
+    t[0] = t[2]
+
+def p_expresion_numero(t):
+    'expf : NUMBER'
+    t[0] = Temporal(t[1],"")
+
+def p_error(t):
+    print("Syntax error at '%s'" % t.value)
+
+import ply.yacc as yacc
+parser = yacc.yacc()
+
+contador = 0
+
+def newTemp():
+    contador = contador+1
+    return "TEMP"+contador
+
+while True:
+    try:
+        s = input('calc > ')   # input python
+    except EOFError:
+        break
+    parser.parse(s)

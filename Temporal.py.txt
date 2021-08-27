@@ -1,0 +1,4 @@
+class Temporal(Instruccion):
+    def __init__(self, temp,c3d):
+        self.temp = temp
+	self.c3d = c3d
